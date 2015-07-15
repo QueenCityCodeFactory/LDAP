@@ -1,0 +1,40 @@
+{
+    "name": "QueenCityCodeFactory/LDAP",
+    "description": "LDAP plugin for CakePHP 3.x",
+    "type": "cakephp-plugin",
+    "keywords":[
+        "cakephp",
+        "authenticate",
+        "ldap"
+    ],
+    "homepage": "http://github.com/QueenCityCodeFactory/LDAP",
+    "authors":[
+        {
+            "name":"darensipes",
+            "role":"Author",
+            "homepage":"https://github.com/darensipes"
+        }
+    ],
+    "license": "MIT",
+    "support":{
+        "source":"https://github.com/QueenCityCodeFactory/LDAP",
+        "issues":"https://github.com/QueenCityCodeFactory/LDAP/issues"
+    },
+    "require": {
+        "php": ">=5.4.16",
+        "cakephp/cakephp": "~3.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "QueenCityCodeFactory\\LDAP\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "QueenCityCodeFactory\\LDAP\\Test\\": "tests"
+        }
+    }
+}

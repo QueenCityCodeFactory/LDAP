@@ -62,7 +62,11 @@ class LdapAuthenticate extends BaseAuthenticate
             define('LDAP_OPT_DIAGNOSTIC_MESSAGE', 0x0032);
         }
 
-        if (empty($config['hostname'])) {
+        if (isset($config['host']) && is_object($config['host']) && ($config['host'] instanceof \Closure)) {
+            $config['host'] = $config['host']();
+        }
+
+        if (empty($config['host'])) {
             throw new InternalErrorException('LDAP Server not specified!');
         }
 
@@ -71,7 +75,7 @@ class LdapAuthenticate extends BaseAuthenticate
         }
 
         try {
-            $this->ldapConnection = ldap_connect($config['hostname'], $config['port']);
+            $this->ldapConnection = ldap_connect($config['host'], $config['port']);
         } catch (Exception $e) {
             throw new InternalErrorException('Unable to connect to specified LDAP Server(s)!');
         }
@@ -118,13 +122,7 @@ class LdapAuthenticate extends BaseAuthenticate
             $ldapBind = ldap_bind($this->ldapConnection, $request->data['username'], $request->data['password']);
 
             if ($ldapBind === true) {
-                if (strpos($request->data['username'], $this->_config['domain']) !== false) {
-                    $baseDN = 'OU=' . $this->_config['OU'] . ',DC=domain,DC=local';
-                } else {
-                    $baseDN = 'CN=Users,DC=domain,DC=local';
-                }
-
-                $searchResults = ldap_search($this->ldapConnection, $baseDN, '(UserPrincipalName=' . $request->data['username'] . ')');
+                $searchResults = ldap_search($this->ldapConnection, $this->_config['baseDN']($request->data['username'], $this->_config['domain']), '(' . $this->_config['search'] . '=' . $request->data['username'] . ')');
                 $results = ldap_get_entries($this->ldapConnection, $searchResults);
                 $entry = ldap_first_entry($this->ldapConnection, $searchResults);
                 return ldap_get_attributes($this->ldapConnection, $entry);

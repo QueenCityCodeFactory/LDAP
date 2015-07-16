@@ -29,48 +29,10 @@ Setup the authentication class settings
 ### AppController Setup:
 
 ```php
-    //in $components
-    public $components = [
-        'Auth' => [
-            'QueenCityCodeFactory/LDAP.Ldap' => [
-                'fields' => [
-                    'username' => 'username',
-                    'password' => 'password'
-                ],
-                'port' => Configure::read('Ldap.port'),
-                'hostname' => Configure::read('Ldap.hostname'),
-                'domain' => Configure::read('Ldap.domain'),
-                'OU' => Configure::read('Ldap.OU'),
-                'errors' => Configure::read('Ldap.errors')
-            ]
-        ]
-    ];
-
-    // Or in beforeFilter()
-    $this->Auth->config('authenticate', [
-        'QueenCityCodeFactory/LDAP.Ldap' => [
-            'fields' => [
-                'username' => 'username',
-                'password' => 'password'
-            ],
-            'port' => Configure::read('Ldap.port'),
-            'hostname' => Configure::read('Ldap.hostname'),
-            'domain' => Configure::read('Ldap.domain'),
-            'OU' => Configure::read('Ldap.OU'),
-            'errors' => Configure::read('Ldap.errors')
-        ]
-    ]);
-
-    // Or in initialize()
     public function initialize()
     {
         parent::initialize();
         $this->loadComponent('Flash');
-
-        // Load the LDAP servers & shuffle them - will use a random server from the list of servers
-        $hosts = Configure::read('Ldap.servers');
-        shuffle($hosts);
-
         $this->loadComponent('Auth', [
             'loginAction' => [
                 'controller' => 'Users',
@@ -84,9 +46,10 @@ Setup the authentication class settings
                         'password' => 'password'
                     ],
                     'port' => Configure::read('Ldap.port'),
-                    'hostname' => $hosts[0],
+                    'host' => Configure::read('Ldap.host'),
                     'domain' => Configure::read('Ldap.domain'),
-                    'OU' => Configure::read('Ldap.OU'),
+                    'baseDN' => Configure::read('Ldap.baseDN'),
+                    'search' => Configure::read('Ldap.search'),
                     'errors' => Configure::read('Ldap.errors')
                 ]
             ]
@@ -98,7 +61,6 @@ Setup the authentication class settings
 
 config/app.php:
 ```php
-
     /**
      * LDAP Configuration.
      *
@@ -106,20 +68,39 @@ config/app.php:
      *
      * ## Options
      *
-     * - `domain` - The domain name to match against or auto complete so user isn't required to enter full email address
-     * - `OU` - OU for login
-     * - `servers` - List of LDAP servers, one server is required. Used to randomly hit domain controllers. Uses PHP array shuffle function to get a random server.
+     * - `domain` - The domain name to match against or auto complete so user isn't
+     *    required to enter full email address
+     * - `host` - The domain controller hostname. This can be a closure or a string.
+     *    The closure allows you to modify the rules in the configuration without the
+     *    need to modify the LDAP plugin. One host (string) should be returned when
+     *    using closure.
+     * - `baseDN` - The base DN for directory - Closure must be used here, the plugin
+     *    is expecting a closure object to be set.
+     * - `search` - The attribute to search against. Usually 'UserPrincipalName'
      * - `port` - The port to use. Default is 389 and is not required.
-     * - `errors` - Array of errors where key is the error and the value is the error message. Set in session to Flash.ldap for flashing
+     * - `errors` - Array of errors where key is the error and the value is the error
+     *    message. Set in session to Flash.ldap for flashing
      *
-     * You may want to define some other method for randomizing multiple domain controllers.
+     * @link http://php.net/manual/en/function.ldap-search.php - for more info on ldap search
      */
     'Ldap' => [
         'domain' => 'example.com',
-        'OU' => 'example',
-        'servers' => ['127.0.0.1', 'dc.example.com'],
-        //'hostname' => '127.0.0.1'
+        'host' => function() {
+            $hosts = ['192.168.1.13', '127.0.0.1'];
+            shuffle($hosts);
+            return $hosts[0];
+        },
+        //'host' => '127.0.0.1',
         'port' => 389,
+        'search' => 'UserPrincipalName',
+        'baseDN' => function($username, $domain) {
+            if (strpos($username, $domain) !== false) {
+                $baseDN = 'OU=example,DC=domain,DC=local';
+            } else {
+                $baseDN = 'CN=Users,DC=domain,DC=local';
+            }
+            return $baseDN;
+        },
         'errors' => [
             'data 773' => 'Some error for Flash',
             'data 532' => 'Some error for Flash',

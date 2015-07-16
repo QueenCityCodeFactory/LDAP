@@ -15,7 +15,9 @@
 namespace QueenCityCodeFactory\LDAP\Auth;
 
 use Cake\Auth\BaseAuthenticate;
+use Cake\Controller\ComponentRegistry;
 use Cake\Network\Exception\UnauthorizedException;
+use Cake\Network\Exception\InternalErrorException;
 use Cake\Network\Request;
 use Cake\Network\Response;
 
@@ -40,6 +42,42 @@ class LdapAuthenticate extends BaseAuthenticate
 {
 
     /**
+     * LDAP Object
+     *
+     * @var object
+     */
+    private $ldapConnection;
+
+    /**
+     * Constructor
+     *
+     * @param \Cake\Controller\ComponentRegistry $registry The Component registry used on this request.
+     * @param array $config Array of config to use.
+     */
+    public function __construct(ComponentRegistry $registry, array $config = [])
+    {
+        parent::__construct($registry, $config);
+
+        if (!defined('LDAP_OPT_DIAGNOSTIC_MESSAGE')) {
+            define('LDAP_OPT_DIAGNOSTIC_MESSAGE', 0x0032);
+        }
+
+        if (empty($config['hostname'])) {
+            throw new InternalErrorException('LDAP Server not specified!');
+        }
+
+        if (empty($config['port'])) {
+            $config['port'] = null;
+        }
+
+        try {
+            $this->ldapConnection = ldap_connect($config['hostname'], $config['port']);
+        } catch (Exception $e) {
+            throw new InternalErrorException('Unable to connect to specified LDAP Server(s)!');
+        }
+    }
+
+    /**
      * Authenticate a user using HTTP auth. Will use the configured User model and attempt a
      * login using HTTP auth.
      *
@@ -60,7 +98,59 @@ class LdapAuthenticate extends BaseAuthenticate
      */
     public function getUser(Request $request)
     {
-        debug($request);
+        if (!empty($this->_config['domain']) && !empty($request->data['username']) && strpos($request->data['username'], '@') === false) {
+            $request->data['username'] .= '@' . $this->_config['domain'];
+        }
+
+        if (!isset($request->data['username']) || !isset($request->data['password'])) {
+            return false;
+        }
+
+        set_error_handler(
+            function ($errorNumber, $errorText, $errorFile, $errorLine)
+            {
+                throw new \ErrorException($errorText, 0, $errorNumber, $errorFile, $errorLine);
+            },
+            E_ALL
+        );
+
+        try {
+            $ldapBind = ldap_bind($this->ldapConnection, $request->data['username'], $request->data['password']);
+
+            if ($ldapBind === true) {
+                if (strpos($request->data['username'], $this->_config['domain']) !== false) {
+                    $baseDN = 'OU=' . $this->_config['OU'] . ',DC=domain,DC=local';
+                } else {
+                    $baseDN = 'CN=Users,DC=domain,DC=local';
+                }
+
+                $searchResults = ldap_search($this->ldapConnection, $baseDN, '(UserPrincipalName=' . $request->data['username'] . ')');
+                $results = ldap_get_entries($this->ldapConnection, $searchResults);
+                $entry = ldap_first_entry($this->ldapConnection, $searchResults);
+                return ldap_get_attributes($this->ldapConnection, $entry);
+            } else {
+                if (ldap_get_option($this->ldapConnection, LDAP_OPT_DIAGNOSTIC_MESSAGE, $extendedError)) {
+                    if (!empty($extendedError)){
+                        foreach ($this->_config['errors'] as $error => $errorMessage) {
+                            if (strpos($extendedError, $error) !== false) {
+                                $request->session()->write('Flash.ldap', [
+                                    'message' => $errorMessage,
+                                    'key' => 'ldap',
+                                    'element' => 'default',
+                                    'params' => ['class' => 'danger']
+                                ]);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (\ErrorException $e) {
+            throw new InternalErrorException($e->getMessage());
+        }
+        restore_error_handler();
+
+        return false;
     }
 
 }

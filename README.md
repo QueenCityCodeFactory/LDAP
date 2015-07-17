@@ -1,5 +1,5 @@
 # LDAP Authenticate plugin
-LDAP Authenicate Plugin for CakePHP 3.x and AuthComponent.
+LDAP Authenticate Plugin for CakePHP 3.x and AuthComponent.
 
 ## Requirements
 * CakePHP 3.0

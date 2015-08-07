@@ -16,8 +16,9 @@ namespace QueenCityCodeFactory\LDAP\Auth;
 
 use Cake\Auth\BaseAuthenticate;
 use Cake\Controller\ComponentRegistry;
-use Cake\Network\Exception\UnauthorizedException;
+use Cake\Log\LogTrait;
 use Cake\Network\Exception\InternalErrorException;
+use Cake\Network\Exception\UnauthorizedException;
 use Cake\Network\Request;
 use Cake\Network\Response;
 
@@ -40,6 +41,8 @@ use Cake\Network\Response;
  */
 class LdapAuthenticate extends BaseAuthenticate
 {
+
+    use LogTrait;
 
     /**
      * LDAP Object
@@ -111,8 +114,7 @@ class LdapAuthenticate extends BaseAuthenticate
         }
 
         set_error_handler(
-            function ($errorNumber, $errorText, $errorFile, $errorLine)
-            {
+            function ($errorNumber, $errorText, $errorFile, $errorLine) {
                 throw new \ErrorException($errorText, 0, $errorNumber, $errorFile, $errorLine);
             },
             E_ALL
@@ -128,27 +130,29 @@ class LdapAuthenticate extends BaseAuthenticate
                 return ldap_get_attributes($this->ldapConnection, $entry);
             } else {
                 if (ldap_get_option($this->ldapConnection, LDAP_OPT_DIAGNOSTIC_MESSAGE, $extendedError)) {
-                    if (!empty($extendedError)){
+                    if (!empty($extendedError)) {
                         foreach ($this->_config['errors'] as $error => $errorMessage) {
                             if (strpos($extendedError, $error) !== false) {
-                                $request->session()->write('Flash.ldap', [
+                                $messages[] = [
                                     'message' => $errorMessage,
                                     'key' => 'ldap',
-                                    'element' => 'default',
-                                    'params' => ['class' => 'danger']
-                                ]);
-                                break;
+                                    'element' => 'error',
+                                    'params' => []
+                                ];
                             }
                         }
                     }
                 }
             }
         } catch (\ErrorException $e) {
-            throw new InternalErrorException($e->getMessage());
+            $this->log($e->getMessage());
         }
         restore_error_handler();
 
+        if (!empty($messages)) {
+            $request->session()->write('Flash.ldap', $messages);
+        }
+
         return false;
     }
-
 }

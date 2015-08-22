@@ -138,7 +138,7 @@ class LdapAuthenticate extends BaseAuthenticate
                                 'message' => $errorMessage,
                                 'key' => $this->_config['flash']['key'],
                                 'element' => $this->_config['flash']['element'],
-                                'params' => []
+                                'params' => $this->_config['flash']['params'],
                             ];
                         }
                     }

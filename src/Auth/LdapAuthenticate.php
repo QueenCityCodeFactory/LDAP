@@ -122,35 +122,33 @@ class LdapAuthenticate extends BaseAuthenticate
 
         try {
             $ldapBind = ldap_bind($this->ldapConnection, $request->data['username'], $request->data['password']);
-
             if ($ldapBind === true) {
                 $searchResults = ldap_search($this->ldapConnection, $this->_config['baseDN']($request->data['username'], $this->_config['domain']), '(' . $this->_config['search'] . '=' . $request->data['username'] . ')');
                 $results = ldap_get_entries($this->ldapConnection, $searchResults);
                 $entry = ldap_first_entry($this->ldapConnection, $searchResults);
                 return ldap_get_attributes($this->ldapConnection, $entry);
-            } else {
-                if (ldap_get_option($this->ldapConnection, LDAP_OPT_DIAGNOSTIC_MESSAGE, $extendedError)) {
-                    if (!empty($extendedError)) {
-                        foreach ($this->_config['errors'] as $error => $errorMessage) {
-                            if (strpos($extendedError, $error) !== false) {
-                                $messages[] = [
-                                    'message' => $errorMessage,
-                                    'key' => 'ldap',
-                                    'element' => 'error',
-                                    'params' => []
-                                ];
-                            }
+            }
+        } catch (\ErrorException $e) {
+            $this->log($e->getMessage());
+            if (ldap_get_option($this->ldapConnection, LDAP_OPT_DIAGNOSTIC_MESSAGE, $extendedError)) {
+                if (!empty($extendedError)) {
+                    foreach ($this->_config['errors'] as $error => $errorMessage) {
+                        if (strpos($extendedError, $error) !== false) {
+                            $messages[] = [
+                                'message' => $errorMessage,
+                                'key' => $this->_config['flash']['key'],
+                                'element' => $this->_config['flash']['element'],
+                                'params' => []
+                            ];
                         }
                     }
                 }
             }
-        } catch (\ErrorException $e) {
-            $this->log($e->getMessage());
         }
         restore_error_handler();
 
         if (!empty($messages)) {
-            $request->session()->write('Flash.ldap', $messages);
+            $request->session()->write('Flash.' . $this->_config['flash']['key'], $messages);
         }
 
         return false;

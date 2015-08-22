@@ -50,7 +50,11 @@ Setup the authentication class settings
                     'domain' => Configure::read('Ldap.domain'),
                     'baseDN' => Configure::read('Ldap.baseDN'),
                     'search' => Configure::read('Ldap.search'),
-                    'errors' => Configure::read('Ldap.errors')
+                    'errors' => Configure::read('Ldap.errors'),
+                    'flash' => [
+                        'key' => 'ldap',
+                        'element' => 'Flash/error',
+                    ]
                 ]
             ]
         ]);

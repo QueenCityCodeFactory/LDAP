@@ -79,10 +79,21 @@ class LdapAuthenticate extends BaseAuthenticate
 
         try {
             $this->ldapConnection = ldap_connect($config['host'], $config['port']);
+            ldap_set_option($this->ldapConnection, LDAP_OPT_NETWORK_TIMEOUT, 5);
         } catch (Exception $e) {
             throw new InternalErrorException('Unable to connect to specified LDAP Server(s)!');
         }
     }
+    
+    /**
+     * Destructor
+     */
+    public function __destruct()
+    {
+        @ldap_unbind($this->ldapConnection);
+        @ldap_close($this->ldapConnection);
+    }
+
 
     /**
      * Authenticate a user using HTTP auth. Will use the configured User model and attempt a

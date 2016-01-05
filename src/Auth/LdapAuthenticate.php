@@ -157,7 +157,8 @@ class LdapAuthenticate extends BaseAuthenticate
         restore_error_handler();
 
         if (!empty($messages)) {
-            $request->session()->write('Flash.' . $this->_config['flash']['key'], $messages);
+            $controller = $this->_registry->getController();
+            $controller->request->session()->write('Flash.' . $this->_config['flash']['key'], $messages);
         }
 
         return false;

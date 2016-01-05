@@ -84,7 +84,7 @@ class LdapAuthenticate extends BaseAuthenticate
             throw new InternalErrorException('Unable to connect to specified LDAP Server(s)!');
         }
     }
-    
+
     /**
      * Destructor
      */
@@ -94,10 +94,8 @@ class LdapAuthenticate extends BaseAuthenticate
         @ldap_close($this->ldapConnection);
     }
 
-
     /**
-     * Authenticate a user using HTTP auth. Will use the configured User model and attempt a
-     * login using HTTP auth.
+     * Authenticate a user based on the request information.
      *
      * @param \Cake\Network\Request $request The request to authenticate with.
      * @param \Cake\Network\Response $response The response to add headers to.
@@ -105,23 +103,23 @@ class LdapAuthenticate extends BaseAuthenticate
      */
     public function authenticate(Request $request, Response $response)
     {
-        return $this->getUser($request);
+        if (!isset($request->data['username']) || !isset($request->data['password'])) {
+            return false;
+        }
+        return $this->_findUser($request->data['username'], $request->data['username']);
     }
 
     /**
-     * Get a user based on information in the request. Used by cookie-less auth for stateless clients.
+     * Find a user record using the username and password provided.
      *
-     * @param \Cake\Network\Request $request Request object.
-     * @return mixed Either false or an array of user information
+     * @param string $username The username/identifier.
+     * @param string|null $password The password
+     * @return bool|array Either false on failure, or an array of user data.
      */
-    public function getUser(Request $request)
+    protected function _findUser($username, $password = null)
     {
-        if (!empty($this->_config['domain']) && !empty($request->data['username']) && strpos($request->data['username'], '@') === false) {
-            $request->data['username'] .= '@' . $this->_config['domain'];
-        }
-
-        if (!isset($request->data['username']) || !isset($request->data['password'])) {
-            return false;
+        if (!empty($this->_config['domain']) && !empty($username) && strpos($username, '@') === false) {
+            $username .= '@' . $this->_config['domain'];
         }
 
         set_error_handler(
@@ -132,9 +130,9 @@ class LdapAuthenticate extends BaseAuthenticate
         );
 
         try {
-            $ldapBind = ldap_bind($this->ldapConnection, $request->data['username'], $request->data['password']);
+            $ldapBind = ldap_bind($this->ldapConnection, $username, $password);
             if ($ldapBind === true) {
-                $searchResults = ldap_search($this->ldapConnection, $this->_config['baseDN']($request->data['username'], $this->_config['domain']), '(' . $this->_config['search'] . '=' . $request->data['username'] . ')');
+                $searchResults = ldap_search($this->ldapConnection, $this->_config['baseDN']($username, $this->_config['domain']), '(' . $this->_config['search'] . '=' . $username . ')');
                 $results = ldap_get_entries($this->ldapConnection, $searchResults);
                 $entry = ldap_first_entry($this->ldapConnection, $searchResults);
                 return ldap_get_attributes($this->ldapConnection, $entry);

@@ -106,7 +106,7 @@ class LdapAuthenticate extends BaseAuthenticate
         if (!isset($request->data['username']) || !isset($request->data['password'])) {
             return false;
         }
-        return $this->_findUser($request->data['username'], $request->data['username']);
+        return $this->_findUser($request->data['username'], $request->data['password']);
     }
 
     /**

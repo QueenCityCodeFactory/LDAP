@@ -12,7 +12,7 @@
  * @since         0.1.0
  * @license       http://www.opensource.org/licenses/mit-license.php MIT License
  */
-namespace QueenCityCodeFactory\LDAP\Auth;
+namespace Ldap\Auth;
 
 use Cake\Auth\BaseAuthenticate;
 use Cake\Controller\ComponentRegistry;
@@ -21,6 +21,7 @@ use Cake\Network\Exception\InternalErrorException;
 use Cake\Network\Exception\UnauthorizedException;
 use Cake\Network\Request;
 use Cake\Network\Response;
+use ErrorException;
 
 /**
  * LDAP Authentication adapter for AuthComponent.
@@ -90,8 +91,16 @@ class LdapAuthenticate extends BaseAuthenticate
      */
     public function __destruct()
     {
-        @ldap_unbind($this->ldapConnection);
-        @ldap_close($this->ldapConnection);
+        try {
+            ldap_unbind($this->ldapConnection);
+        } catch (Exception $e) {
+            // Do Nothing
+        }
+        try {
+            ldap_close($this->ldapConnection);
+        } catch (Exception $e) {
+            // Do Nothing
+        }
     }
 
     /**
@@ -124,7 +133,7 @@ class LdapAuthenticate extends BaseAuthenticate
 
         set_error_handler(
             function ($errorNumber, $errorText, $errorFile, $errorLine) {
-                throw new \ErrorException($errorText, 0, $errorNumber, $errorFile, $errorLine);
+                throw new ErrorException($errorText, 0, $errorNumber, $errorFile, $errorLine);
             },
             E_ALL
         );
@@ -137,7 +146,7 @@ class LdapAuthenticate extends BaseAuthenticate
                 $entry = ldap_first_entry($this->ldapConnection, $searchResults);
                 return ldap_get_attributes($this->ldapConnection, $entry);
             }
-        } catch (\ErrorException $e) {
+        } catch (ErrorException $e) {
             $this->log($e->getMessage());
             if (ldap_get_option($this->ldapConnection, LDAP_OPT_DIAGNOSTIC_MESSAGE, $extendedError)) {
                 if (!empty($extendedError)) {

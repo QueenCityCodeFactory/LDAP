@@ -21,20 +21,23 @@
         "issues":"https://github.com/QueenCityCodeFactory/LDAP/issues"
     },
     "require": {
-        "php": ">=5.4.16",
-        "cakephp/cakephp": "~3.0"
+        "php": ">=5.5.9",
+        "cakephp/cakephp": ">=3.2.0"
     },
     "require-dev": {
+        "cakephp/cakephp-codesniffer": "dev-master",
         "phpunit/phpunit": "*"
     },
     "autoload": {
         "psr-4": {
-            "QueenCityCodeFactory\\LDAP\\": "src"
+            "Ldap\\": "src"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "QueenCityCodeFactory\\LDAP\\Test\\": "tests"
+            "Ldap\\Test\\": "tests"
         }
-    }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
 }

@@ -91,16 +91,25 @@ class LdapAuthenticate extends BaseAuthenticate
      */
     public function __destruct()
     {
+        set_error_handler(
+            function ($errorNumber, $errorText, $errorFile, $errorLine) {
+                throw new ErrorException($errorText, 0, $errorNumber, $errorFile, $errorLine);
+            },
+            E_ALL
+        );
+
         try {
             ldap_unbind($this->ldapConnection);
-        } catch (Exception $e) {
+        } catch (ErrorException $e) {
             // Do Nothing
         }
         try {
             ldap_close($this->ldapConnection);
-        } catch (Exception $e) {
+        } catch (ErrorException $e) {
             // Do Nothing
         }
+
+        restore_error_handler();
     }
 
     /**

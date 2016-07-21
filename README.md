@@ -44,7 +44,7 @@ Setup the authentication class settings
             ],
             'authError' => 'Insufficient privileges to view requested resources. Please login to continue!',
             'authenticate' => [
-                'QueenCityCodeFactory/LDAP.Ldap' => [
+                'Ldap.Ldap' => [
                     'fields' => [
                         'username' => 'username',
                         'password' => 'password'

@@ -113,11 +113,7 @@ config/app.php:
             return $baseDN;
         },
         'bindDN' => function($username, $domain) {
-            if (strpos($username, $domain) !== false) {
-                $bindDN = 'OU=example,DC=domain,DC=local';
-            } else {
-                $bindDN = 'CN=Users,DC=domain,DC=local';
-            }
+            $bindDN = "CN=".$username.", OU=example";
             return $bindDN;
         },
         'errors' => [

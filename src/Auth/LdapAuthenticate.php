@@ -80,7 +80,13 @@ class LdapAuthenticate extends BaseAuthenticate
 
         try {
             $this->ldapConnection = ldap_connect($config['host'], $config['port']);
-            ldap_set_option($this->ldapConnection, LDAP_OPT_NETWORK_TIMEOUT, 5);
+            if (isset($config['options']) && is_array($config['options'])) {
+                foreach ($config['options'] as $option => $value) {
+                    ldap_set_option($this->ldapConnection, $option, $value);
+                }
+            } else {
+                ldap_set_option($this->ldapConnection, LDAP_OPT_NETWORK_TIMEOUT, 5);
+            }
         } catch (Exception $e) {
             throw new InternalErrorException('Unable to connect to specified LDAP Server(s)!');
         }
@@ -124,6 +130,7 @@ class LdapAuthenticate extends BaseAuthenticate
         if (!isset($request->data['username']) || !isset($request->data['password'])) {
             return false;
         }
+
         return $this->_findUser($request->data['username'], $request->data['password']);
     }
 
@@ -152,6 +159,7 @@ class LdapAuthenticate extends BaseAuthenticate
             if ($ldapBind === true) {
                 $searchResults = ldap_search($this->ldapConnection, $this->_config['baseDN']($username, $this->_config['domain']), '(' . $this->_config['search'] . '=' . $username . ')');
                 $entry = ldap_first_entry($this->ldapConnection, $searchResults);
+
                 return ldap_get_attributes($this->ldapConnection, $entry);
             }
         } catch (ErrorException $e) {

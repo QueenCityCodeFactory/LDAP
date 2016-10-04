@@ -55,6 +55,7 @@ Setup the authentication class settings
                     'baseDN' => Configure::read('Ldap.baseDN'),
                     'search' => Configure::read('Ldap.search'),
                     'errors' => Configure::read('Ldap.errors'),
+                    'options' => Configure::read('Ldap.options'),
                     'flash' => [
                         'key' => 'ldap',
                         'element' => 'Flash/error',
@@ -88,6 +89,7 @@ config/app.php:
      * - `port` - The port to use. Default is 389 and is not required.
      * - `errors` - Array of errors where key is the error and the value is the error
      *    message. Set in session to Flash.ldap for flashing
+     * - `options` - Array of options to set using ldap_set_option
      *
      * @link http://php.net/manual/en/function.ldap-search.php - for more info on ldap search
      */
@@ -112,6 +114,10 @@ config/app.php:
         'errors' => [
             'data 773' => 'Some error for Flash',
             'data 532' => 'Some error for Flash',
+        ],
+        'options' => [
+            LDAP_OPT_NETWORK_TIMEOUT => 5,
+            LDAP_OPT_PROTOCOL_VERSION => 3
         ]
     ]
 ```

@@ -1,5 +1,5 @@
 {
-    "name": "queencitycodefactory/ldap",
+    "name": "kingloui/cakephp-ldap",
     "description": "LDAP plugin for CakePHP 3.x",
     "type": "cakephp-plugin",
     "keywords":[

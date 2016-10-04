@@ -53,6 +53,7 @@ Setup the authentication class settings
                     'host' => Configure::read('Ldap.host'),
                     'domain' => Configure::read('Ldap.domain'),
                     'baseDN' => Configure::read('Ldap.baseDN'),
+                    'bindDN' => Configure::read('Ldap.bindDN'),
                     'search' => Configure::read('Ldap.search'),
                     'errors' => Configure::read('Ldap.errors'),
                     'options' => Configure::read('Ldap.options'),
@@ -85,6 +86,8 @@ config/app.php:
      *    using closure.
      * - `baseDN` - The base DN for directory - Closure must be used here, the plugin
      *    is expecting a closure object to be set.
+     * - `bindDN` - The bind DN for directory - Closure must be used here, the plugin
+     *    is expecting a closure object to be set.
      * - `search` - The attribute to search against. Usually 'UserPrincipalName'
      * - `port` - The port to use. Default is 389 and is not required.
      * - `errors` - Array of errors where key is the error and the value is the error
@@ -110,6 +113,10 @@ config/app.php:
                 $baseDN = 'CN=Users,DC=domain,DC=local';
             }
             return $baseDN;
+        },
+        'bindDN' => function($username, $domain) {
+            $bindDN = "CN=".$username.", OU=example";
+            return $bindDN;
         },
         'errors' => [
             'data 773' => 'Some error for Flash',

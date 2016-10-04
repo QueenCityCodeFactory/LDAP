@@ -53,6 +53,13 @@ class LdapAuthenticate extends BaseAuthenticate
     private $ldapConnection;
 
     /**
+     * Log Errors
+     *
+     * @var boolean
+     */
+    public $logErrors = false;
+
+    /**
      * Constructor
      *
      * @param \Cake\Controller\ComponentRegistry $registry The Component registry used on this request.
@@ -76,6 +83,10 @@ class LdapAuthenticate extends BaseAuthenticate
 
         if (empty($config['port'])) {
             $config['port'] = null;
+        }
+
+        if (isset($config['logErrors']) && $config['logErrors'] === true) {
+            $this->logErrors = true;
         }
 
         try {
@@ -163,7 +174,10 @@ class LdapAuthenticate extends BaseAuthenticate
                 return ldap_get_attributes($this->ldapConnection, $entry);
             }
         } catch (ErrorException $e) {
-            $this->log($e->getMessage());
+            if ($this->logErrors === true) {
+                $this->log($e->getMessage());
+            }
+
             if (ldap_get_option($this->ldapConnection, LDAP_OPT_DIAGNOSTIC_MESSAGE, $extendedError)) {
                 if (!empty($extendedError)) {
                     foreach ($this->_config['errors'] as $error => $errorMessage) {

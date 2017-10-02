@@ -120,11 +120,6 @@ class LdapAuthenticate extends BaseAuthenticate
         } catch (ErrorException $e) {
             // Do Nothing
         }
-        try {
-            ldap_close($this->ldapConnection);
-        } catch (ErrorException $e) {
-            // Do Nothing
-        }
 
         restore_error_handler();
     }

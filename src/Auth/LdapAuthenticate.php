@@ -163,7 +163,13 @@ class LdapAuthenticate extends BaseAuthenticate
         try {
             $ldapBind = ldap_bind($this->ldapConnection, isset($this->_config['bindDN']) ? $this->_config['bindDN']($username, $this->_config['domain']) : $username, $password);
             if ($ldapBind === true) {
-                $searchResults = ldap_search($this->ldapConnection, $this->_config['baseDN']($username, $this->_config['domain']), '(' . $this->_config['search'] . '=' . $username . ')');
+                debug(!empty($this->_config['searchAttributes']) ? (is_array($this->_config['searchAttributes']) ? $this->_config['searchAttributes'] : [$this->_config['searchAttributes']]) : ['*']);
+                $searchResults = ldap_search(
+                    $this->ldapConnection,
+                    $this->_config['baseDN']($username, $this->_config['domain']),
+                    (isset($this->_config['search']) && is_callable($this->_config['search'])) ? $this->_config['search']($username) : ('(' . $this->_config['search'] . '=' . $username . ')'),
+                    !empty($this->_config['searchAttributes']) ? (is_array($this->_config['searchAttributes']) ? $this->_config['searchAttributes'] : [$this->_config['searchAttributes']]) : ['*']
+                );
                 $entry = ldap_first_entry($this->ldapConnection, $searchResults);
 
                 return ldap_get_attributes($this->ldapConnection, $entry);

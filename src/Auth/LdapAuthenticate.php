@@ -163,7 +163,6 @@ class LdapAuthenticate extends BaseAuthenticate
         try {
             $ldapBind = ldap_bind($this->ldapConnection, isset($this->_config['bindDN']) ? $this->_config['bindDN']($username, $this->_config['domain']) : $username, $password);
             if ($ldapBind === true) {
-                debug(!empty($this->_config['searchAttributes']) ? (is_array($this->_config['searchAttributes']) ? $this->_config['searchAttributes'] : [$this->_config['searchAttributes']]) : ['*']);
                 $searchResults = ldap_search(
                     $this->ldapConnection,
                     $this->_config['baseDN']($username, $this->_config['domain']),

@@ -44,20 +44,11 @@ Setup the authentication class settings
             ],
             'authError' => 'Insufficient privileges to view requested resources. Please login to continue!',
             'authenticate' => [
-                'Ldap.Ldap' => [
+                'Ldap.Ldap' => Configure::read('Ldap') + [
                     'fields' => [
                         'username' => 'username',
                         'password' => 'password'
                     ],
-                    'port' => Configure::read('Ldap.port'),
-                    'host' => Configure::read('Ldap.host'),
-                    'domain' => Configure::read('Ldap.domain'),
-                    'baseDN' => Configure::read('Ldap.baseDN'),
-                    'bindDN' => Configure::read('Ldap.bindDN'),
-                    'search' => Configure::read('Ldap.search'),
-                    'errors' => Configure::read('Ldap.errors'),
-                    'logErrors' => Configure::read('Ldap.logErrors'),
-                    'options' => Configure::read('Ldap.options'),
                     'flash' => [
                         'key' => 'ldap',
                         'element' => 'Flash/error',
@@ -107,7 +98,10 @@ config/app.php:
         },
         //'host' => '127.0.0.1',
         'port' => 389,
-        'search' => 'UserPrincipalName',
+        'search' => function($username) {
+            return '(UserPrincipalName=' . $username . ')';
+        },
+        'searchAttributes' => ['*', 'memberof'],
         'baseDN' => function($username, $domain) {
             if (strpos($username, $domain) !== false) {
                 $baseDN = 'OU=example,DC=domain,DC=local';

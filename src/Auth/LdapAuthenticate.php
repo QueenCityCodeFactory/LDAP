@@ -17,10 +17,10 @@ namespace Ldap\Auth;
 use Cake\Auth\BaseAuthenticate;
 use Cake\Controller\ComponentRegistry;
 use Cake\Log\LogTrait;
-use Cake\Network\Exception\InternalErrorException;
-use Cake\Network\Exception\UnauthorizedException;
-use Cake\Network\Request;
-use Cake\Network\Response;
+use Cake\Http\Exception\InternalErrorException;
+use Cake\Http\Exception\UnauthorizedException;
+use Cake\Http\ServerRequest;
+use Cake\Http\Response;
 use ErrorException;
 
 /**
@@ -127,17 +127,17 @@ class LdapAuthenticate extends BaseAuthenticate
     /**
      * Authenticate a user based on the request information.
      *
-     * @param \Cake\Network\Request $request The request to authenticate with.
-     * @param \Cake\Network\Response $response The response to add headers to.
+     * @param \Cake\Http\ServerRequest $request The request to authenticate with.
+     * @param \Cake\Http\Response $response The response to add headers to.
      * @return mixed Either false on failure, or an array of user data on success.
      */
-    public function authenticate(Request $request, Response $response)
+    public function authenticate(ServerRequest $request, Response $response)
     {
-        if (!isset($request->data['username']) || !isset($request->data['password'])) {
+        if (empty($request->getData('username')) || empty($request->getData('password'))) {
             return false;
         }
 
-        return $this->_findUser($request->data['username'], $request->data['password']);
+        return $this->_findUser($request->getData('username'), $request->getData('password'));
     }
 
     /**
@@ -197,7 +197,7 @@ class LdapAuthenticate extends BaseAuthenticate
 
         if (!empty($messages)) {
             $controller = $this->_registry->getController();
-            $controller->request->session()->write('Flash.' . $this->_config['flash']['key'], $messages);
+            $controller->request->getSession()->write('Flash.' . $this->_config['flash']['key'], $messages);
         }
 
         return false;

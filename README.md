@@ -91,6 +91,10 @@ config/app.php:
      */
     'Ldap' => [
         'domain' => 'example.com',
+        'alternateDomains' => [
+            'anotherexample.com',
+            'example2.com',
+        ],
         'host' => function() {
             $hosts = ['192.168.1.13', '127.0.0.1'];
             shuffle($hosts);
@@ -121,7 +125,7 @@ config/app.php:
         'logErrors' => true,
         'options' => [
             LDAP_OPT_NETWORK_TIMEOUT => 5,
-            LDAP_OPT_PROTOCOL_VERSION => 3
+            LDAP_OPT_PROTOCOL_VERSION => 3,
         ]
     ]
 ```

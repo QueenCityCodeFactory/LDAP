@@ -137,7 +137,20 @@ class LdapAuthenticate extends BaseAuthenticate
             return false;
         }
 
-        return $this->_findUser($request->getData('username'), $request->getData('password'));
+        $foundUser = $this->_findUser($request->getData('username'), $request->getData('password'));
+
+        if (empty($foundUser) && strpos($request->getData('username'), '@') === false && !empty($this->_config['alternateDomains']) && is_array($this->_config['alternateDomains'])) {
+
+            foreach ($this->_config['alternateDomains'] as $alternateDomain) {
+                $foundUser = $this->_findUser($request->getData('username') . '@' . $alternateDomain, $request->getData('password'));
+
+                if (!empty($foundUser)) {
+                    break;
+                }
+            }
+        }
+
+        return $foundUser;
     }
 
     /**

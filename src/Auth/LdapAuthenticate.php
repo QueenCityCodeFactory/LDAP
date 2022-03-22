@@ -16,11 +16,11 @@ namespace Ldap\Auth;
 
 use Cake\Auth\BaseAuthenticate;
 use Cake\Controller\ComponentRegistry;
-use Cake\Log\LogTrait;
 use Cake\Http\Exception\InternalErrorException;
 use Cake\Http\Exception\UnauthorizedException;
-use Cake\Http\ServerRequest;
 use Cake\Http\Response;
+use Cake\Http\ServerRequest;
+use Cake\Log\LogTrait;
 use ErrorException;
 
 /**
@@ -42,7 +42,6 @@ use ErrorException;
  */
 class LdapAuthenticate extends BaseAuthenticate
 {
-
     use LogTrait;
 
     /**
@@ -140,7 +139,6 @@ class LdapAuthenticate extends BaseAuthenticate
         $foundUser = $this->_findUser($request->getData('username'), $request->getData('password'));
 
         if (empty($foundUser) && strpos($request->getData('username'), '@') === false && !empty($this->_config['alternateDomains']) && is_array($this->_config['alternateDomains'])) {
-
             foreach ($this->_config['alternateDomains'] as $alternateDomain) {
                 $foundUser = $this->_findUser($request->getData('username') . '@' . $alternateDomain, $request->getData('password'));
 

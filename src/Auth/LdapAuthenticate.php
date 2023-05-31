@@ -17,11 +17,11 @@ namespace Ldap\Auth;
 use Cake\Auth\BaseAuthenticate;
 use Cake\Controller\ComponentRegistry;
 use Cake\Http\Exception\InternalErrorException;
-use Cake\Http\Exception\UnauthorizedException;
 use Cake\Http\Response;
 use Cake\Http\ServerRequest;
 use Cake\Log\LogTrait;
 use ErrorException;
+use Exception;
 
 /**
  * LDAP Authentication adapter for AuthComponent.

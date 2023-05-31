@@ -92,6 +92,9 @@ class LdapAuthenticate extends BaseAuthenticate
             $this->ldapConnection = ldap_connect($config['host'], $config['port']);
             if (isset($config['options']) && is_array($config['options'])) {
                 foreach ($config['options'] as $option => $value) {
+                    if (is_string($option)) {
+                        $option = constant($option);
+                    }
                     ldap_set_option($this->ldapConnection, $option, $value);
                 }
             } else {
